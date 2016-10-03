@@ -20,7 +20,7 @@
 //
 // Returns: 
 // - modifies the the 1,0 value (life, death) of the cell.
-void con_rules( int &cell, int &neighbors )
+void con_rules( int *cell, int *neighbors )
 {
     if ( neighbors <= 1 )
         cell = 0;
