@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
     // MPI Variables
     int             my_rank;           
     int             p;                 
-    int             tag     = 0;    
+    int             tag = 0;    
     MPI_Status      status;
     char            name[MPI_MAX_PROCESSOR_NAME];
     int             pnamemax;
