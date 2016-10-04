@@ -9,19 +9,13 @@
  * and modified it to fit my needs.
  *
  * TO-DO
- * -> Popt
- *  -distribution type ( block/checkerboard )
- *  -syncro/asyncro messages
- *  -Number of iterations
- *  -if and when to count the bugs
- *  -initial world file
- *
  * -> Allocate arrays
  * -> Read File
  * -> Count Bugs
  *
  * -> Serial np=1 rules.
  * -> Block implementation
+ * -> Rule implementation
  * 
  */
 
@@ -32,45 +26,6 @@
 #include <mpi.h>
 #include <popt.h>
 
-///////////////////////////////////////////////////////////////////////////////
-// Popt Variables
-///////////////////////////////////////////////////////////////////////////////
-static int intVal = 55;
-static int print = 0;
-static char* stringVal;
-void callback( poptContext context, 
-               enum poptCallbackReason reason,
-               const struct poptOption * option,
-               const char * arg,
-               const void * data )
-
-///////////////////////////////////////////////////////////////////////////////
-// Handleing some Popt output.
-///////////////////////////////////////////////////////////////////////////////
-{
-switch(reason)
-{
-case POPT_CALLBACK_REASON_PRE:
-printf("\t Callback in pre setting\n"); break;
-case POPT_CALLBACK_REASON_POST:
-printf("\t Callback in post setting\n"); break;
-case POPT_CALLBACK_REASON_OPTION:
-printf("\t Callback in option setting\n"); break;
-}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Popt table of options
-///////////////////////////////////////////////////////////////////////////////
-static struct poptOption optionsTable[] = {
-{ "int", 'i', POPT_ARG_INT, (void*) &intVal, 0, "follow with an integer value", "2, 4, 8, or 16" },
-{ "callback", '\0', POPT_ARG_CALLBACK|POPT_ARGFLAG_DOC_HIDDEN, &callback, 0, NULL, NULL },
-{  "file",  'f', POPT_ARG_STRING, (void*) &stringVal, 0, "follow with a file name", NULL },
-{  "print",  'p', POPT_ARG_NONE, &print, 0, "send output to the printer", NULL },
-POPT_AUTOALIAS
-POPT_AUTOHELP
-POPT_TABLEEND
-};
 
 
 // Apply the rules for the game of life to a cell.
@@ -82,14 +37,14 @@ POPT_TABLEEND
 // - modifies the the 1,0 value (life, death) of the cell.
 void con_rules( int *cell, int *neighbors )
 {
-    if ( neighbors <= 1 )
-        cell = 0;
-    else if ( neighbors >= 4 )
-        cell = 0;
-    else if ( neighbors == 2 || neighbors == 3 )
-        cell = 1;
-    else if ( neighbors == 3 )
-        cell = 1;
+    if ( *neighbors <= 1 )
+        *cell = 0;
+    else if ( *neighbors >= 4 )
+        *cell = 0;
+    else if ( *neighbors == 2 || *neighbors == 3 )
+        *cell = 1;
+    else if ( *neighbors == 3 )
+        *cell = 1;
 }
 
 
@@ -103,20 +58,15 @@ int main( int argc, char* argv[] )
     char            name[MPI_MAX_PROCESSOR_NAME];
     int             pnamemax;
 
-    // Parse Args with Popt
-    poptContext context = poptGetContext( "popt1", argc, argv,
-                                          (const struct poptOption* ) &optionsTable, 0);
-    int option = poptGetNextOpt(context);
-    printf("option = %d\n", option);
+    // Popt cmd line argument variables.
+    static int iter_number = 0;
+    static int count_alive = 0;
+    static int block_type  = 0;
+    static int verbose     = 0;
+    static int async_comm  = 0;
+    static int checker_type     = 0;
+    static char* filename;
 
-    /* Print out option values. */
-    printf("After processing, options have values:\n");
-    printf("\t intVal holds %d\n", intVal);
-    printf("\t print flag holds %d\n", print);
-    printf("\t stringVal holds [%s]\n", stringVal);
-    poptFreeContext(context);
-    exit(0);
-    
     ///////////////////////////////////////////////////////////////////////////
     // Initialize MPI and retreive world size, p's rank, and p's node name.
     ///////////////////////////////////////////////////////////////////////////
@@ -126,6 +76,41 @@ int main( int argc, char* argv[] )
     MPI_Get_processor_name(name,&pnamemax);
 
     ///////////////////////////////////////////////////////////////////////////
-    // Parse the comand line arguments. 
+    // Parse the comand line arguments with Popt.
     ///////////////////////////////////////////////////////////////////////////
+    static struct poptOption optionsTable[] = 
+    {
+    { "interations", 'i', POPT_ARG_INT, (void*) &iter_number, 0, "Set the number of world iterations.", "2, 3, ... n" },
+    { "count-alive", 'c', POPT_ARG_INT, (void*) &count_alive, 0, "Specifiy the iteration after which to count bugs." , NULL },
+    { "verbose", 'v', POPT_ARG_NONE, (void*) &verbose, 0, "set verbose level to 1." , NULL },
+    {  "filename",  'f', POPT_ARG_STRING, (void*) &filename, 0, "Set the name of the world file to read.", "*.pgm" },
+    {  "block",  'b', POPT_ARG_NONE, &block_type, 0, "Set the process distribution to block type.", NULL },
+    {  "async-comm",  NULL, POPT_ARG_NONE, &async_comm, 0, "Set the communication type to asyncronous.", NULL },
+    {  "checker-board", NULL, POPT_ARG_NONE, &checker_type, 0, "Set the process distribution to checker board type.", NULL },
+    POPT_AUTOALIAS
+    POPT_AUTOHELP
+    POPT_TABLEEND
+    };
+    poptContext context = poptGetContext( "popt1", argc, argv, (const struct poptOption* ) &optionsTable, 0);
+    int option          = poptGetNextOpt(context);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Print outputs. 
+    ///////////////////////////////////////////////////////////////////////////
+
+    // Handle verbose output of command line arguments if v switch set. 
+    if ( verbose == 1 )
+    {
+        printf("option = %d\n", option);
+        printf("After processing, options have values:\n");
+        printf("\t iterations holds %d\n", iter_number);
+        printf("\t count_alive holds %d\n", count_alive);
+        printf("\t block flag holds %d\n", block_type);
+        printf("\t verbose flag holds %d\n", verbose);
+        printf("\t checker flag holds %d\n", checker_type);
+        printf("\t async_comm flag holds %d\n", async_comm);
+        printf("\t filename holds [%s]\n", filename);
+    }
+    poptFreeContext(context);
+    exit(0);
 }
