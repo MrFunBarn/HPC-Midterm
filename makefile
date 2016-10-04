@@ -1,6 +1,6 @@
 CC=mpicc
-flagGCC= -Wall -lm
-flagIntel= -Wall
+flagGCC= -Wall -lm -lpopt
+flagIntel= -Wall -lpopt
 out=midterm
 
 # all assumes gcc compiler wich needs -lm flag.
