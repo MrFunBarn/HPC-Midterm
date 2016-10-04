@@ -8,6 +8,9 @@
  * https://docs.fedoraproject.org/en-US/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch15s02s04.html
  * and modified it to fit my needs.
  *
+ * Additionaly, I barrowed the globals.h, pgm, and pprintf file provided on
+ * moddle.
+ *
  * TO-DO
  * -> Allocate arrays
  * -> Read File
@@ -25,6 +28,23 @@
 #include <math.h>
 #include <mpi.h>
 #include <popt.h>
+
+// Include global variables. 
+#define __MAIN 
+#include "globals.h"
+#undef __MAIN
+
+// User includes
+#include "pprintf.h"
+#include "pgm.h"
+
+// MPI Variables
+int rank;
+int np;
+int my_name_len;
+char my_name[255];
+// global verbose tag.
+int verbose;
 
 // Apply the rules for the game of life to a cell.
 // Arguments: 
@@ -48,14 +68,6 @@ void con_rules( int *cell, int *neighbors )
 
 int main( int argc, char* argv[] )
 {
-    // MPI Variables
-    int             my_rank;           
-    int             p;                 
-    int             tag = 0;    
-    MPI_Status      status;
-    char            name[MPI_MAX_PROCESSOR_NAME];
-    int             pnamemax;
-
     // Popt cmd line argument variables.
     int iter_number  = 0;
     int count_alive  = 0;
@@ -63,15 +75,7 @@ int main( int argc, char* argv[] )
     int verbose      = 0;
     int async_comm   = 0;
     int checker_type = 0;
-    char* filename;
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Initialize MPI and retreive world size, p's rank, and p's node name.
-    ///////////////////////////////////////////////////////////////////////////
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &p);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    MPI_Get_processor_name(name,&pnamemax);
+    char* filename   = "";
 
     ///////////////////////////////////////////////////////////////////////////
     // Parse the comand line arguments with Popt.
@@ -92,10 +96,6 @@ int main( int argc, char* argv[] )
     poptContext context = poptGetContext( "popt1", argc, argv, &optionsTable, 0);
     int option          = poptGetNextOpt(context);
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Print outputs. 
-    ///////////////////////////////////////////////////////////////////////////
-
     // Handle verbose output of command line arguments if v switch set. 
     if ( verbose == 1 )
     {
@@ -109,6 +109,18 @@ int main( int argc, char* argv[] )
         printf("\t async_comm flag holds %d\n", async_comm);
         printf("\t filename holds [%s]\n", filename);
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Initialize MPI and retreive world size, p's rank, and p's node name.
+    ///////////////////////////////////////////////////////////////////////////
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &np);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Get_processor_name(my_name,&my_name_len);
+    // Verbose output of basic MPI process information.
+    if ( verbose == 1 )
+        printf("[ %s, %d ] World size = %d\n", my_name, rank, np);
+
 
     ///////////////////////////////////////////////////////////////////////////
     // Final clean-up and shutdown. 
