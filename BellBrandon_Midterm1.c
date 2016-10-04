@@ -25,8 +25,6 @@
  * 
  */
 
-
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -45,6 +43,35 @@ void callback( poptContext context,
                const struct poptOption * option,
                const char * arg,
                const void * data )
+
+///////////////////////////////////////////////////////////////////////////////
+// Handleing some Popt output.
+///////////////////////////////////////////////////////////////////////////////
+{
+switch(reason)
+{
+case POPT_CALLBACK_REASON_PRE:
+printf("\t Callback in pre setting\n"); break;
+case POPT_CALLBACK_REASON_POST:
+printf("\t Callback in post setting\n"); break;
+case POPT_CALLBACK_REASON_OPTION:
+printf("\t Callback in option setting\n"); break;
+}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Popt table of options
+///////////////////////////////////////////////////////////////////////////////
+static struct poptOption optionsTable[] = {
+{ "int", 'i', POPT_ARG_INT, (void*) &intVal, 0, "follow with an integer value", "2, 4, 8, or 16" },
+{ "callback", '\0', POPT_ARG_CALLBACK|POPT_ARGFLAG_DOC_HIDDEN, &callback, 0, NULL, NULL },
+{  "file",  'f', POPT_ARG_STRING, (void*) &stringVal, 0, "follow with a file name", NULL },
+{  "print",  'p', POPT_ARG_NONE, &print, 0, "send output to the printer", NULL },
+POPT_AUTOALIAS
+POPT_AUTOHELP
+POPT_TABLEEND
+};
+
 
 // Apply the rules for the game of life to a cell.
 // Arguments: 
@@ -65,18 +92,9 @@ void con_rules( int *cell, int *neighbors )
         cell = 1;
 }
 
+
 int main( int argc, char* argv[] )
 {
-    // Popt variables
-    static int intVal = 55;
-    static int print = 0;
-    static char* stringVal;
-    void callback(poptContext context,
-    enum poptCallbackReason reason,
-    const struct poptOption * option,
-    const char * arg,
-    const void * data)
-
     // MPI Variables
     int             my_rank;           
     int             p;                 
@@ -84,6 +102,20 @@ int main( int argc, char* argv[] )
     MPI_Status      status;
     char            name[MPI_MAX_PROCESSOR_NAME];
     int             pnamemax;
+
+    // Parse Args with Popt
+    poptContext context = poptGetContext( "popt1", argc, argv,
+                                          (const struct poptOption* ) &optionsTable, 0);
+    int option = poptGetNextOpt(context);
+    printf("option = %d\n", option);
+
+    /* Print out option values. */
+    printf("After processing, options have values:\n");
+    printf("\t intVal holds %d\n", intVal);
+    printf("\t print flag holds %d\n", print);
+    printf("\t stringVal holds [%s]\n", stringVal);
+    poptFreeContext(context);
+    exit(0);
     
     ///////////////////////////////////////////////////////////////////////////
     // Initialize MPI and retreive world size, p's rank, and p's node name.
