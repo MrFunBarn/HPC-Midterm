@@ -26,8 +26,6 @@
 #include <mpi.h>
 #include <popt.h>
 
-
-
 // Apply the rules for the game of life to a cell.
 // Arguments: 
 // - int ptr cell: a ptr to a cell (should be in i+1 array)
@@ -59,13 +57,13 @@ int main( int argc, char* argv[] )
     int             pnamemax;
 
     // Popt cmd line argument variables.
-    static int iter_number = 0;
-    static int count_alive = 0;
-    static int block_type  = 0;
-    static int verbose     = 0;
-    static int async_comm  = 0;
-    static int checker_type     = 0;
-    static char* filename;
+    int iter_number  = 0;
+    int count_alive  = 0;
+    int block_type   = 0;
+    int verbose      = 0;
+    int async_comm   = 0;
+    int checker_type = 0;
+    char* filename;
 
     ///////////////////////////////////////////////////////////////////////////
     // Initialize MPI and retreive world size, p's rank, and p's node name.
@@ -78,20 +76,20 @@ int main( int argc, char* argv[] )
     ///////////////////////////////////////////////////////////////////////////
     // Parse the comand line arguments with Popt.
     ///////////////////////////////////////////////////////////////////////////
-    static struct poptOption optionsTable[] = 
+    struct poptOption optionsTable[] = 
     {
-    { "interations", 'i', POPT_ARG_INT, (void*) &iter_number, 0, "Set the number of world iterations.", "2, 3, ... n" },
-    { "count-alive", 'c', POPT_ARG_INT, (void*) &count_alive, 0, "Specifiy the iteration after which to count bugs." , NULL },
-    { "verbose", 'v', POPT_ARG_NONE, (void*) &verbose, 0, "set verbose level to 1." , NULL },
-    {  "filename",  'f', POPT_ARG_STRING, (void*) &filename, 0, "Set the name of the world file to read.", "*.pgm" },
-    {  "block",  'b', POPT_ARG_NONE, &block_type, 0, "Set the process distribution to block type.", NULL },
-    {  "async-comm",  NULL, POPT_ARG_NONE, &async_comm, 0, "Set the communication type to asyncronous.", NULL },
-    {  "checker-board", NULL, POPT_ARG_NONE, &checker_type, 0, "Set the process distribution to checker board type.", NULL },
+    {"interations",   'i',  POPT_ARG_INT,    &iter_number,  0, "Set the number of world iterations.", "2, 3, ... n" },
+    {"count-alive",   'c',  POPT_ARG_INT,    &count_alive,  0, "Specifiy the iteration after which to count bugs." , NULL },
+    {"verbose",       'v',  POPT_ARG_NONE,   &verbose,      0, "set verbose level to 1." , NULL },
+    {"block",         'b',  POPT_ARG_NONE,   &block_type,   0, "Set the process distribution to block type.", NULL },
+    {"async-comm",    NULL, POPT_ARG_NONE,   &async_comm,   0, "Set the communication type to asyncronous.", NULL },
+    {"checker-board", NULL, POPT_ARG_NONE,   &checker_type, 0, "Set the process distribution to checker board type.", NULL },
+    {"filename",      'f',  POPT_ARG_STRING, &filename,     0, "Set the name of the world file to read.", "*.pgm" },
     POPT_AUTOALIAS
     POPT_AUTOHELP
     POPT_TABLEEND
     };
-    poptContext context = poptGetContext( "popt1", argc, argv, (const struct poptOption* ) &optionsTable, 0);
+    poptContext context = poptGetContext( "popt1", argc, argv, &optionsTable, 0);
     int option          = poptGetNextOpt(context);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -111,6 +109,10 @@ int main( int argc, char* argv[] )
         printf("\t async_comm flag holds %d\n", async_comm);
         printf("\t filename holds [%s]\n", filename);
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Final clean-up and shutdown. 
+    ///////////////////////////////////////////////////////////////////////////
     poptFreeContext(context);
     exit(0);
 }
