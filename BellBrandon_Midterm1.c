@@ -123,8 +123,38 @@ int main( int argc, char* argv[] )
 
 
     ///////////////////////////////////////////////////////////////////////////
+    // Set-up the conways variables and read the starting world file. 
+    ///////////////////////////////////////////////////////////////////////////
+
+    // set ncol and nrows for the serial case.
+    if ( np == 1 )
+    {
+        ncols = 1;
+        nrows = 1;
+    }
+    // set ncol and n rows for the block distribution case.
+    else if ( block_type == 1 )
+    {
+        ncols = 1;
+        nrows = np;
+    }
+    else if ( checker_type == 1 )
+    {
+        printf("you choose a not yet implemented checkerbord distribution.\n");
+        return 1;
+    }
+    // Read the world file using the wonderful provided function.
+    readpgm(filename);
+
+
+    ///////////////////////////////////////////////////////////////////////////
     // Final clean-up and shutdown. 
     ///////////////////////////////////////////////////////////////////////////
+
+    // Free the popt context memory.
     poptFreeContext(context);
-    exit(0);
+    // Shutdown MPI.
+    MPI_Finalize();
+
+    return 0;
 }
