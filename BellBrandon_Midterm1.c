@@ -36,6 +36,10 @@
 #include "pprintf.h"
 #include "pgm.h"
 
+///////////////////////////////////////////////////////////////////////////
+// Global Variables. 
+///////////////////////////////////////////////////////////////////////////
+
 // MPI Variables
 int rank;
 int np;
@@ -43,6 +47,29 @@ int my_name_len;
 char my_name[255];
 // global verbose tag.
 int verbose;
+
+///////////////////////////////////////////////////////////////////////////
+// Count Bugs:
+// Find the number of bugs alive in the processes peice of the world.
+//
+// Inputs:
+// - Ptr to the array for wich the bugs are to be counted.
+// - int representing the iteration the array represents.
+//
+// Results:
+// - Summs the bugs into a local variable and prints the result to stdout.
+///////////////////////////////////////////////////////////////////////////
+void countBugs( int *world, int iteration )
+{
+    // Loop variables.
+    int i;
+
+    // determine if the world is parallelized. If the program is running
+    // serialy then there are no ghost rows and if it's running parallel then
+    // ghost rows need to be alloted for and not count to prevent double
+    // counting bugs. Set the loop variable ranges based on this information.
+
+}
 
 // Apply the rules for the game of life to a cell.
 // Arguments: 
@@ -73,7 +100,7 @@ int main( int argc, char* argv[] )
     int verbose      = 0;
     int async_comm   = 0;
     int checker_type = 0;
-    char* filename   = "";
+    char* filename   = ""; 
 
     ///////////////////////////////////////////////////////////////////////////
     // Parse the comand line arguments with Popt.
@@ -121,7 +148,8 @@ int main( int argc, char* argv[] )
 
 
     ///////////////////////////////////////////////////////////////////////////
-    // Set-up the conways variables and read the starting world file. 
+    // Set-up the conways variables based on partition scheme being used 
+    // and read the starting world file. 
     ///////////////////////////////////////////////////////////////////////////
 
     // Make sure that only partition type is specified.
@@ -169,9 +197,8 @@ int main( int argc, char* argv[] )
     // Read the world file using the wonderful provided function.
     // populates field_a and _b with the data from that region of the file with
     // size accomidations for the ghost rows/cols. I'll use them as field_a is
-    // the i array and field_b is the i+1 array.
+    // the i array and field_b is the i+1 array initialy.
     readpgm(filename);
-
 
     ///////////////////////////////////////////////////////////////////////////
     // Final clean-up and shutdown. 
