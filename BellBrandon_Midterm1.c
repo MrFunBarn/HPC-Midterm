@@ -12,8 +12,6 @@
  * moddle.
  *
  * TO-DO
- * -> Allocate arrays
- * -> Read File
  * -> Count Bugs
  *
  * -> Serial np=1 rules.
@@ -126,6 +124,17 @@ int main( int argc, char* argv[] )
     // Set-up the conways variables and read the starting world file. 
     ///////////////////////////////////////////////////////////////////////////
 
+    // Make sure that only partition type is specified.
+    if ( checker_type == 1 && block_type == 1 )
+    {
+        if ( rank == 0 )
+        {
+            printf(" => [ERROR] more than one partition scheme specified.\n");
+        }
+        // Call finalize before quiting, it's just good manners.
+        MPI_Finalize();
+        return 1;
+    }
     // set ncol and nrows for the serial case.
     if ( np == 1 )
     {
@@ -141,9 +150,26 @@ int main( int argc, char* argv[] )
     else if ( checker_type == 1 )
     {
         printf("you choose a not yet implemented checkerbord distribution.\n");
+        // Call finalize before quiting, it's just good manners.
+        MPI_Finalize();
         return 1;
     }
+    else 
+    {
+        if ( rank == 0 )
+        {
+            printf(" => [ERROR] More than 1 process started but no partion scheme specified.\n");
+            printf("   -> Pleas specify one of --checker-board or -b, --block\n");
+        }
+        // Call finalize before quiting, it's just good manners.
+        MPI_Finalize();
+        return 1;
+    }
+
     // Read the world file using the wonderful provided function.
+    // populates field_a and _b with the data from that region of the file with
+    // size accomidations for the ghost rows/cols. I'll use them as field_a is
+    // the i array and field_b is the i+1 array.
     readpgm(filename);
 
 
