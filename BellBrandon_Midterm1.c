@@ -128,20 +128,27 @@ int main( int argc, char* argv[] )
     ///////////////////////////////////////////////////////////////////////////
     // Parse the comand line arguments with Popt.
     ///////////////////////////////////////////////////////////////////////////
-    struct poptOption optionsTable[] = 
+    const struct poptOption optionsTable[] = 
     {
-    {"interations",   'i',  POPT_ARG_INT,    &iter_number,  0, "Set the number of world iterations.", "2, 3, ... n" },
-    {"count-alive",   'c',  POPT_ARG_INT,    &count_alive,  0, "Specifiy the iteration after which to count bugs." , NULL },
-    {"verbose",       'v',  POPT_ARG_NONE,   &verbose,      0, "set verbose level to 1." , NULL },
-    {"block",         'b',  POPT_ARG_NONE,   &block_type,   0, "Set the process distribution to block type.", NULL },
-    {"async-comm",    NULL, POPT_ARG_NONE,   &async_comm,   0, "Set the communication type to asyncronous.", NULL },
-    {"checker-board", NULL, POPT_ARG_NONE,   &checker_type, 0, "Set the process distribution to checker board type.", NULL },
-    {"filename",      'f',  POPT_ARG_STRING, &filename,     0, "Set the name of the world file to read.", "*.pgm" },
+    {"interations",   'i',  POPT_ARG_INT,    &iter_number,  0, 
+     "Set the number of world iterations.", "2, 3, ... n" },
+    {"count-alive",   'c',  POPT_ARG_INT,    &count_alive,  0,
+    "Specifiy the iteration after which to count bugs." , NULL },
+    {"verbose",       'v',  POPT_ARG_NONE,   &verbose,      0, 
+     "set verbose level to 1." , NULL },
+    {"block",         'b',  POPT_ARG_NONE,   &block_type,   0, 
+     "Set the process distribution to block type.", NULL },
+    {"async-comm",    NULL, POPT_ARG_NONE,   &async_comm,   0, 
+     "Set the communication type to asyncronous.", NULL },
+    {"checker-board", NULL, POPT_ARG_NONE,   &checker_type, 0, 
+     "Set the process distribution to checker board type.", NULL },
+    {"filename",      'f',  POPT_ARG_STRING, &filename,     0, 
+     "Set the name of the world file to read.", "*.pgm" },
     POPT_AUTOALIAS
     POPT_AUTOHELP
     POPT_TABLEEND
     };
-    poptContext context = poptGetContext( "popt1", argc, argv, &optionsTable, 0);
+    poptContext context = poptGetContext( "popt1", argc, argv, optionsTable, 0);
     int option          = poptGetNextOpt(context);
 
     // Handle verbose output of command line arguments if v switch set. 
