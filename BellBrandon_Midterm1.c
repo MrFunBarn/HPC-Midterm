@@ -107,8 +107,10 @@ void countBugs( int *world, int iteration )
 
 int main( int argc, char* argv[] )
 {
+    // local MPI variables.
     MPI_Status  status;
     int tag = 0;
+
     // Popt cmd line argument variables.
     int iter_number  = 0;
     int count_alive  = 0;
@@ -132,16 +134,22 @@ int main( int argc, char* argv[] )
     {
     {"interations",   'i',  POPT_ARG_INT,    &iter_number,  0, 
      "Set the number of world iterations.", "2, 3, ... n" },
+
     {"count-alive",   'c',  POPT_ARG_INT,    &count_alive,  0,
     "Specifiy the iteration after which to count bugs." , NULL },
+
     {"verbose",       'v',  POPT_ARG_NONE,   &verbose,      0, 
      "set verbose level to 1." , NULL },
+
     {"block",         'b',  POPT_ARG_NONE,   &block_type,   0, 
      "Set the process distribution to block type.", NULL },
+
     {"async-comm",    NULL, POPT_ARG_NONE,   &async_comm,   0, 
      "Set the communication type to asyncronous.", NULL },
+
     {"checker-board", NULL, POPT_ARG_NONE,   &checker_type, 0, 
      "Set the process distribution to checker board type.", NULL },
+
     {"filename",      'f',  POPT_ARG_STRING, &filename,     0, 
      "Set the name of the world file to read.", "*.pgm" },
     POPT_AUTOALIAS
