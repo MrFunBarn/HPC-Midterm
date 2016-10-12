@@ -1,8 +1,8 @@
 /* 
  * Brandon Bell
  * CSCI: 4576
- * Midterm 1: Conway's Game of Life. 
- * 10-5-16
+ * Midterm 2: Conway's Game of Life. 
+ * 10-1-16
  *
  * Popt was causeing my some frustrations so i grabbed a working example from
  * https://docs.fedoraproject.org/en-US/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch15s02s04.html
@@ -69,42 +69,28 @@ void countBugs( int *world, int iteration )
     int width;    
     int height;
 
-    // determine if the world is parallelized. If the program is running
-    // serialy then there are no ghost rows and if it's running parallel then
-    // ghost rows need to be alloted for and not count to prevent double
-    // counting bugs. Set the loop variable ranges based on this information.
-
-    // The serial Case.
-    if ( np == 1 )
-    {
-        width   = field_width;
-        height  = field_height;
-    }
-    // The block distribution case.
-    else if ( ncols == 1 && np > 1 )
-    {
-        width   = field_width;
-        height  = field_height;
-        //printf("The count array address is %d, col %d, row %d\n",world, ncols, nrows);
-    }
-
-    // Count the bugs for a serial world. This gets me the known 26,301 bugs.
+    // Count the bugs. This gets me the known 26,301 bugs in
+    // the serial case at least.
+    width   = field_width;
+    height  = field_height;
     for ( i=(width+1); i<( width*height - width -1 ); i++ )
     {
+        // Check to see if in a ghost row and skip if so.
+        if ( i%width==0 || i%width==width )
+            continue;
+
+        // Actually count the bugs.
         if ( *(world + i) == 1 )
             count++;
     }
-    /* for ( i=0; i<( width*height*sizeof(int) ); i++ ) */
-    /* { */
-        /* if ( *(world + i) == 1 ) */
-            /* count++; */
-    /* } */
-
-
     printf("[ %d, %d , %d ]\n", rank, iteration, count);
+
 }
 
 
+///////////////////////////////////////////////////////////////////////////
+// Main 
+///////////////////////////////////////////////////////////////////////////
 int main( int argc, char* argv[] )
 {
     // local MPI variables.
@@ -256,10 +242,13 @@ int main( int argc, char* argv[] )
     }
     else if ( checker_type == 1 )
     {
-        printf("you choose a not yet implemented checkerbord distribution.\n");
-        // Call finalize before quiting, it's just good manners.
-        MPI_Finalize();
-        return 1;
+        ncols = sqrt(np);
+        nrows = sqrt(np);
+        my_row = (rank / nrows ) ; 
+        my_col = (rank+nrows) % nrows;
+        // print the p's row and column coordinates if -v set.
+        if ( verbose == 1 )
+            printf("rank, my_row, my_col { %d, %d, %d }\n", rank, my_row, my_col);
     }
     else 
     {
@@ -297,23 +286,24 @@ int main( int argc, char* argv[] )
             newcell = field_b + i;
             // Calculate a cells neighbors by summing the stencil.
             neighbors = 0;
-            neighbors = *(cell-1)+ *(cell+1)+ *(cell-l)+ *(cell-l-1)+ *(cell-l+1)+ *(cell+l)+ *(cell+l+1)+ *(cell+l-1);
+            neighbors = *(cell-1)+ *(cell+1)+ *(cell-l)+ *(cell-l-1)
+                        + *(cell-l+1)+ *(cell+l)+ *(cell+l+1)+ *(cell+l-1);
 
             // Apply Conway's Rules.
             if ( *cell == 1 && neighbors <= 1 )
                 *newcell = 0;
             else if ( *cell == 1 && neighbors >= 4 )
                 *newcell = 0;
-            else if ( (*cell == 1 && neighbors == 2) || neighbors == 3 )
+            else if ( *cell == 1 && (neighbors == 2 || neighbors == 3) )
                 *newcell = 1;
             else if ( *cell == 0 && neighbors == 3 )
                 *newcell = 1;
+            // swap the i and i+1 pointers.
             swap = field_b;
             field_b = field_a;
             field_a = swap;
         }
 
-        //printf("iter j %d\n", j);
         // Bug count output.
         if ( count_alive !=0 )
         {
